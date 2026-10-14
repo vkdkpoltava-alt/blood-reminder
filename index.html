@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Нагадування про донацію крові</title>
+<style>
+  body{font-family:system-ui,sans-serif;display:flex;min-height:100vh;margin:0;align-items:center;justify-content:center;background:#fff5f5;color:#222;text-align:center;padding:16px;box-sizing:border-box}
+  .card{max-width:360px}
+  a.btn{display:inline-block;margin-top:16px;padding:14px 22px;background:#c62828;color:#fff;border-radius:10px;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🩸 Дякуємо за донацію!</h1>
+  <p id="msg">Додаємо нагадування в Google Календар…</p>
+  <a class="btn" id="link" href="#">Додати в Google Календар</a>
+</div>
+<script>
+(function () {
+  var DAYS = 60;
+  var start = new Date();
+  start.setDate(start.getDate() + DAYS);
+  var end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  // Локальна дата у форматі YYYYMMDD (без зсуву через часові пояси)
+  function fmt(d) {
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + m + day;
+  }
+
+  var url = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + "&text=" + encodeURIComponent("Можна здавати кров 🩸")
+    + "&dates=" + fmt(start) + "/" + fmt(end)
+    + "&details=" + encodeURIComponent("Минуло 60 днів після останньої донації. Час записатися на здачу крові!");
+
+  document.getElementById("link").href = url;
+  document.getElementById("msg").textContent =
+    "Нагадування буде на " + start.toLocaleDateString("uk-UA", {day:"numeric", month:"long", year:"numeric"}) + ".";
+
+  setTimeout(function () { location.href = url; }, 800);
+})();
+</script>
+</body>
+</html>
