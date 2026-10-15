@@ -25,8 +25,8 @@
 <script>
 // ============ НАЛАШТУВАННЯ: змінюйте тільки цей блок ============
 var CONFIG = {
-  title: "Твоя кров дуже потрібна 🩸",
-  description: "Минуло 60 днів після останньої донації. Час прийти на здачу крові!",
+  title: "Можна здавати кров 🩸",
+  description: "Минуло 60 днів після останньої донації. Час записатися на здачу крові!",
   days: 60   // через скільки днів нагадати
 };
 // =================================================================
@@ -64,28 +64,27 @@ var CONFIG = {
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//blood-reminder//UK", "BEGIN:VEVENT",
     "UID:" + Date.now() + "@blood-reminder",
     "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
-    "DTSTART;VALUE=DATE:" + fmt(start),
-    "DTEND;VALUE=DATE:" + fmt(end),
+    "DTSTART:" + fmt(start) + "T080000",
+    "DTEND:" + fmt(start) + "T140000",
     "SUMMARY:" + esc(title),
     "DESCRIPTION:" + esc(desc),
-    "BEGIN:VALARM", "TRIGGER:PT9H", "ACTION:DISPLAY", "DESCRIPTION:" + esc(title), "END:VALARM",
+    "BEGIN:VALARM", "TRIGGER:-PT5M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(title), "END:VALARM",
     "END:VEVENT", "END:VCALENDAR"
   ].join("\r\n");
-  var icsUrl = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+  var icsUrl = URL.createObjectURL(new Blob([ics], {type: "text/calendar;charset=utf-8"}));
 
   var isApple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
 
-  function btn(text, href, cls, download) {
+  function btn(text, href, cls) {
     var a = document.createElement("a");
     a.className = "btn " + cls;
     a.textContent = text;
     a.href = href;
-    if (download) a.setAttribute("download", "donor-reminder.ics");
     return a;
   }
 
   var google = btn("Google Календар", gUrl, isApple ? "secondary" : "primary");
-  var apple = btn("Apple Календар / інший (.ics)", icsUrl, isApple ? "primary" : "secondary", true);
+  var apple = btn("Apple Календар", icsUrl, isApple ? "primary" : "secondary");
 
   var box = document.getElementById("btns");
   if (isApple) { box.appendChild(apple); box.appendChild(google); }
