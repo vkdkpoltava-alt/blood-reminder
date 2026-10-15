@@ -3,10 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Нагадування про донацію крові</title>
+<title></title>
 <style>
   body{font-family:system-ui,sans-serif;display:flex;min-height:100vh;margin:0;align-items:center;justify-content:center;background:#fff5f5;color:#222;text-align:center;padding:16px;box-sizing:border-box}
   .card{max-width:360px;width:100%}
+  .luck-btn{width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:9px;margin:0 0 18px;padding:15px 20px;border:2px solid #b8860b;border-radius:10px;background:linear-gradient(135deg,#ffe08a,#d4a017);color:#4a3500;font-weight:700;font-size:16px;cursor:pointer;box-shadow:0 3px 8px rgba(120,85,0,.2)}
+  #luckLabel{overflow-wrap:anywhere}
+  .luck-btn:hover:not(:disabled){filter:brightness(1.04)}
+  .luck-btn:disabled{opacity:.85;cursor:default}
   .btns{display:flex;flex-direction:column;gap:12px;margin-top:20px}
   .btn{display:block;padding:15px 20px;border-radius:10px;text-decoration:none;font-weight:600;font-size:16px}
   .primary{background:#c62828;color:#fff}
@@ -16,18 +20,70 @@
 </head>
 <body>
 <div class="card">
-  <h1>🩸 Дякуємо за донацію!</h1>
+  <button type="button" class="luck-btn" id="luckButton"><span aria-hidden="true" id="luckIcon"></span><span id="luckLabel"></span></button>
+  <h1 id="heading"></h1>
   <p id="msg"></p>
   <div class="btns" id="btns"></div>
-  <p class="hint">Оберіть свій календар. Подія додасться після підтвердження.</p>
+  <p class="hint" id="hint"></p>
 </div>
 
 <script>
 // ============ НАЛАШТУВАННЯ: змінюйте тільки цей блок ============
 var CONFIG = {
-  title: "Можна здавати кров 🩸",
-  description: "Минуло 60 днів після останньої донації. Час записатися на здачу крові!",
-  days: 60   // через скільки днів нагадати
+  // Текст на сторінці
+  pageTitle: "Нагадування про донацію крові",
+  heading: "🩸 Дякуємо за донацію!",
+  messageTemplate: "Нагадування: {date}.", // {date} замінюється датою події
+  hint: "Оберіть свій календар. Подія додасться після підтвердження.",
+  googleButton: "Google Календар",
+  appleButton: "Apple Календар",
+
+  // Текст події в обох календарях
+  eventTitle: "Можна здавати кров 🩸",
+  eventDescription: "Минуло 60 днів після останньої донації. Час завітати на здачу крові!",
+
+  // Дата та час
+  days: 60,                 // через скільки днів планувати подію
+  startTime: "08:00",       // початок події
+  endTime: "14:00",         // кінець у звичайний день
+  monthEndTime: "13:00",    // кінець в останній день місяця
+  reminderMinutes: 5,        // сповіщення за скільки хвилин до початку
+  timeZone: "Europe/Kyiv",
+
+  // Кнопка передбачення
+  luckButtonText: "Натискай і тобі пощастить",
+  prizeIcon: "🏆",
+  prizeText: "ПРИЗ!!!",
+  prizeProbability: 0.20, // 20% виграшу, решта — передбачення
+  predictions: [
+    "На шляху відкриваються двері, за якими ховаються неймовірні можливості.",
+    "Ви знайдете відповідь на своє запитання в незвичайному місці.",
+    "Вас очікує багато приємних знайомств, які допоможуть вам у житті.",
+    "Запам'ятайте: добро завжди перемагає зло, тому будьте відкритими до добрих людей та ідей.",
+    "Ваша духовна сила дозволить вам подолати будь-які перешкоди на вашому шляху.",
+    "Нові можливості виявлятимуться в дивних та неочікуваних місцях.",
+    "Подаруйте собі час, щоб знайти тих, хто стане вашими найближчими друзями.",
+    "Ви зможете знайти внутрішню гармонію та спокій.",
+    "Ваші бажання здійсняться, якщо ви будете відкриті до можливостей, які надаються вам.",
+    "Нові двері відкриються перед вами, якщо відкриєте своє серце для нового досвіду.",
+    "Зараз у Вашому житті настає переломний момент, від якого залежить майбутнє.",
+    "Настав час показати, ким же Ви є насправді.",
+    "Протягом багатьох років Вас супроводжуватимуть щастя, здоров'я, удача та благополуччя.",
+    "Попереду на Вас чекає несподіване отримання грошей, яке поправить Ваше матеріальне становище, що похитнулося.",
+    "Не засмучуйтеся, якщо справи йдуть не так, як Вам цього хотілося б, удача вже на порозі.",
+    "Вас чекають щасливі дні!",
+    "Дехто думає про тебе кожен день.",
+    "Подаруй посмішку тому, хто її потребує.",
+    "Молодість — прекрасна пора. Живи на повну!",
+    "Домагайся перемоги діями, а не аргументами.",
+    "Хто перемагає інших — сильний, хто перемагає себе — могутній!",
+    "Пора збирати валізи: на Вас чекає подорож у приємній компанії.",
+    "Ваші стосунки з коханою людиною продовжаться довго, якщо Ви не розповідатимете про них незнайомим людям.",
+    "Щастя — це те, чим ділишся, а воно тільки множиться.",
+    "Наші думки не мають ніякої влади над нами, поки ми не підпорядкуємо їм себе.",
+    "Кожен щасливий рівно настільки, наскільки він уміє бути щасливим.",
+    "Навчись захищати свої інтереси."
+  ]
 };
 // =================================================================
 
@@ -35,13 +91,36 @@ var CONFIG = {
   // Необов'язково: ?days=90 у посиланні змінює термін без редагування файлу
   var p = new URLSearchParams(location.search);
   var days = parseInt(p.get("days"), 10) || CONFIG.days;
-  var title = p.get("text") || CONFIG.title;
-  var desc = CONFIG.description;
+  var title = p.get("text") || CONFIG.eventTitle;
+  var desc = CONFIG.eventDescription;
 
   var start = new Date();
   start.setDate(start.getDate() + days);
-  var end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  var weekday = start.getDay();
+  if (weekday === 6) start.setDate(start.getDate() + 2); // субота → понеділок
+  else if (weekday === 0) start.setDate(start.getDate() + 1); // неділя → понеділок
+  var isMonthEnd = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate() === start.getDate();
+  var endTime = isMonthEnd ? CONFIG.monthEndTime : CONFIG.endTime;
+
+  function timeFmt(value) { return value.replace(":", "") + "00"; }
+
+  document.title = CONFIG.pageTitle;
+  document.getElementById("heading").textContent = CONFIG.heading;
+  document.getElementById("hint").textContent = CONFIG.hint;
+
+  var luckButton = document.getElementById("luckButton");
+  var luckLabel = document.getElementById("luckLabel");
+  document.getElementById("luckIcon").textContent = CONFIG.prizeIcon;
+  luckLabel.textContent = CONFIG.luckButtonText;
+  luckButton.addEventListener("click", function () {
+    luckButton.disabled = true;
+    if (Math.random() < CONFIG.prizeProbability) {
+      luckLabel.textContent = CONFIG.prizeText;
+    } else {
+      var index = Math.floor(Math.random() * CONFIG.predictions.length);
+      luckLabel.textContent = CONFIG.predictions[index];
+    }
+  });
 
   function fmt(d) {
     return d.getFullYear() +
@@ -50,12 +129,12 @@ var CONFIG = {
   }
 
   document.getElementById("msg").textContent =
-    "Нагадування: " + start.toLocaleDateString("uk-UA", {day: "numeric", month: "long", year: "numeric"}) + ".";
+    CONFIG.messageTemplate.replace("{date}", start.toLocaleDateString("uk-UA", {day: "numeric", month: "long", year: "numeric"}));
 
   // Google Calendar
   var gUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE"
     + "&text=" + encodeURIComponent(title)
-    + "&dates=" + fmt(start) + "/" + fmt(end)
+    + "&dates=" + fmt(start) + "T" + timeFmt(CONFIG.startTime) + "/" + fmt(start) + "T" + timeFmt(endTime) + "&ctz=" + encodeURIComponent(CONFIG.timeZone)
     + "&details=" + encodeURIComponent(desc);
 
   // .ics для Apple Calendar, Outlook та інших
@@ -64,11 +143,11 @@ var CONFIG = {
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//blood-reminder//UK", "BEGIN:VEVENT",
     "UID:" + Date.now() + "@blood-reminder",
     "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
-    "DTSTART:" + fmt(start) + "T080000",
-    "DTEND:" + fmt(start) + "T140000",
+    "DTSTART:" + fmt(start) + "T" + timeFmt(CONFIG.startTime),
+    "DTEND:" + fmt(start) + "T" + timeFmt(endTime),
     "SUMMARY:" + esc(title),
     "DESCRIPTION:" + esc(desc),
-    "BEGIN:VALARM", "TRIGGER:-PT5M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(title), "END:VALARM",
+    "BEGIN:VALARM", "TRIGGER:-PT" + CONFIG.reminderMinutes + "M", "ACTION:DISPLAY", "DESCRIPTION:" + esc(title), "END:VALARM",
     "END:VEVENT", "END:VCALENDAR"
   ].join("\r\n");
   var icsUrl = URL.createObjectURL(new Blob([ics], {type: "text/calendar;charset=utf-8"}));
@@ -83,8 +162,8 @@ var CONFIG = {
     return a;
   }
 
-  var google = btn("Google Календар", gUrl, isApple ? "secondary" : "primary");
-  var apple = btn("Apple Календар", icsUrl, isApple ? "primary" : "secondary");
+  var google = btn(CONFIG.googleButton, gUrl, isApple ? "secondary" : "primary");
+  var apple = btn(CONFIG.appleButton, icsUrl, isApple ? "primary" : "secondary");
 
   var box = document.getElementById("btns");
   if (isApple) { box.appendChild(apple); box.appendChild(google); }
